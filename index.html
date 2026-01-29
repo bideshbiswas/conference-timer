@@ -3,85 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conference Timer (Fixed Audio)</title>
+    <title>ICAROB 2026 Official Timer</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --neon-green: #0f0;
+            --neon-yellow: #ff0;
+            --neon-red: #f00;
+            --bg-color: #050505;
+            --panel-bg: rgba(20, 20, 20, 0.8);
+            --text-glow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #222;
+            background-color: var(--bg-color);
             color: white;
-            transition: background-color 1s ease;
+            transition: background-color 1.5s ease;
             overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 20, 40, 0.7) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 20, 40, 0.7) 1px, transparent 1px);
+            background-size: 50px 50px; /* Tech Grid Effect */
         }
 
-        /* Responsive Text Sizing */
+        /* --- Header Branding --- */
+        .branding {
+            position: absolute;
+            top: 5vh;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5vmin;
+            margin: 0;
+            letter-spacing: 5px;
+            color: #00d2ff;
+            text-shadow: 0 0 15px #00d2ff;
+        }
+
+        h2 {
+            font-size: 2vmin;
+            font-weight: 300;
+            margin-top: 5px;
+            opacity: 0.8;
+            letter-spacing: 2px;
+        }
+
+        /* --- The Digital Timer --- */
         #timer {
-            font-size: 35vmin; 
-            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 35vmin; /* HUGE responsive text */
+            font-weight: 900;
             font-variant-numeric: tabular-nums;
             line-height: 1;
-            margin: 2vh 0;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            margin: 0;
+            z-index: 5;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            transition: color 0.5s ease, text-shadow 0.5s ease;
         }
 
         .status {
-            font-size: 5vmin;
-            margin-bottom: 2vh;
-            font-weight: 600;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4vmin;
+            margin-top: -2vh;
+            margin-bottom: 4vh;
+            font-weight: 700;
             text-transform: uppercase;
             text-align: center;
+            letter-spacing: 3px;
+            opacity: 0.9;
         }
 
+        /* --- Controls Container (Glassmorphism) --- */
         .controls {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 10px;
+            position: absolute;
+            bottom: 5vh;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            z-index: 10;
+            gap: 20px;
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         button {
-            padding: 8px 16px;
-            font-size: 1rem;
+            padding: 12px 24px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
             cursor: pointer;
             border: none;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            white-space: nowrap;
+            border-radius: 30px;
+            color: #000;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
 
-        .btn-start { background-color: #28a745; }
-        .btn-stop { background-color: #dc3545; }
-        .btn-reset { background-color: #6c757d; }
+        button:hover { transform: scale(1.05); filter: brightness(1.2); }
+        button:active { transform: scale(0.95); }
+
+        .btn-start { background: #00ff88; box-shadow: 0 0 15px #00ff88; }
+        .btn-stop { background: #ff4d4d; box-shadow: 0 0 15px #ff4d4d; }
+        .btn-reset { background: #cfcfcf; }
         
-        /* Hidden Audio Player */
+        /* Audio Player Hidden */
         audio { display: none; }
+
+        /* --- Dynamic States --- */
+        
+        /* STATE: GREEN (0-9 mins) */
+        body.state-green #timer { color: #00ff88; text-shadow: 0 0 30px #00ff88; }
+        body.state-green { background-color: #001a0f; }
+
+        /* STATE: YELLOW (9-12 mins) */
+        body.state-yellow #timer { color: #ffcc00; text-shadow: 0 0 30px #ffcc00; }
+        body.state-yellow { background-color: #1a1500; }
+
+        /* STATE: RED (12-15 mins) */
+        body.state-red #timer { color: #ff3333; text-shadow: 0 0 40px #ff3333; }
+        body.state-red { background-color: #2a0000; }
+
+        /* STATE: OVERTIME (15+ mins) */
+        body.state-overtime #timer { animation: blink 1s infinite; color: #ff0000; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
     </style>
 </head>
-<body>
+<body class="state-green">
+
+    <div class="branding">
+        <h1>ICAROB 2026</h1>
+        <h2>Artificial Life and Robotics | Beppu, Japan</h2>
+    </div>
 
     <div id="timer">00:00</div>
-    <div class="status" id="statusText">Ready</div>
+    <div class="status" id="statusText">System Ready</div>
 
     <div class="controls">
         <button class="btn-start" onclick="startTimer()">Start</button>
         <button class="btn-stop" onclick="stopTimer()">Pause</button>
         <button class="btn-reset" onclick="resetTimer()">Reset</button>
-        <button class="btn-reset" onclick="testSound()" style="background-color: #17a2b8;">Test Bell</button>
+        <button class="btn-reset" onclick="testSound()" style="background: #00d2ff; box-shadow: 0 0 15px #00d2ff;">Test Bell</button>
     </div>
 
     <audio id="bellAudio">
         <source src="bell.mp3" type="audio/mpeg">
-        <source src="bell.wav" type="audio/wav"> </audio>
+        <source src="bell.wav" type="audio/wav">
+    </audio>
 
     <script>
         let seconds = 0;
@@ -90,11 +175,12 @@
         const timerDisplay = document.getElementById('timer');
         const statusText = document.getElementById('statusText');
         const audioPlayer = document.getElementById('bellAudio');
+        const body = document.body;
 
-        // --- TIMES (Minutes) ---
-        const TIME_1 = 9;  // 1 Bell
-        const TIME_2 = 12; // 2 Bells
-        const TIME_3 = 15; // 3 Bells
+        // --- ICAROB 2026 SCHEDULE ---
+        const TIME_1 = 9;  // 1 Bell (Warning)
+        const TIME_2 = 12; // 2 Bells (End of Speech)
+        const TIME_3 = 15; // 3 Bells (End of Q&A)
 
         function formatTime(sec) {
             const mins = Math.floor(sec / 60);
@@ -109,15 +195,17 @@
         function startTimer() {
             if (isRunning) return;
             
-            // "Wake up" the audio engine on user click so it's ready for later
+            // Unlock audio context
             audioPlayer.play().then(() => {
                 audioPlayer.pause();
                 audioPlayer.currentTime = 0;
-            }).catch(e => console.log("Audio waiting for interaction"));
+            }).catch(e => console.log("Audio waiting for user interaction"));
 
             isRunning = true;
-            statusText.innerText = "Running";
-            setBackground('green');
+            statusText.innerText = "SESSION LIVE";
+            
+            // Refresh visual state immediately
+            updateVisualState();
 
             interval = setInterval(() => {
                 seconds++;
@@ -129,31 +217,62 @@
         function stopTimer() {
             clearInterval(interval);
             isRunning = false;
-            statusText.innerText = "Paused";
+            statusText.innerText = "TIMER PAUSED";
+            timerDisplay.style.opacity = "0.6";
         }
 
         function resetTimer() {
             stopTimer();
             seconds = 0;
             updateDisplay();
-            statusText.innerText = "Ready";
-            setBackground('default');
+            statusText.innerText = "SYSTEM READY";
+            timerDisplay.style.opacity = "1";
+            body.className = "state-green";
+        }
+
+        function updateVisualState() {
+            timerDisplay.style.opacity = "1";
+            if (seconds < TIME_1 * 60) {
+                body.className = "state-green";
+                statusText.innerText = "PRESENTATION";
+            } else if (seconds < TIME_2 * 60) {
+                body.className = "state-green"; // Still presentation, just warning bell
+            } else if (seconds < TIME_3 * 60) {
+                body.className = "state-yellow";
+                statusText.innerText = "Q & A SESSION";
+            } else {
+                body.className = "state-red";
+                statusText.innerText = "TIME EXPIRED";
+            }
         }
 
         function checkTime() {
-            if (seconds === TIME_1 * 60) {
-                statusText.innerText = "9 Minutes (1 Bell)";
+            const currentSec = seconds;
+
+            // 9 MINUTES -> 1 BELL (Warning)
+            if (currentSec === TIME_1 * 60) {
                 playBell(1);
+                statusText.innerText = "WARNING (9 MIN)";
+                // Optional: Flash background?
             } 
-            else if (seconds === TIME_2 * 60) {
-                statusText.innerText = "12 Minutes (2 Bells)";
-                setBackground('yellow');
+            
+            // 12 MINUTES -> 2 BELLS (End of Speech -> Yellow)
+            else if (currentSec === TIME_2 * 60) {
                 playBell(2);
+                body.className = "state-yellow";
+                statusText.innerText = "END OF SPEECH (12 MIN)";
             } 
-            else if (seconds === TIME_3 * 60) {
-                statusText.innerText = "TIME IS UP";
-                setBackground('red');
+            
+            // 15 MINUTES -> 3 BELLS (End of Q&A -> Red)
+            else if (currentSec === TIME_3 * 60) {
                 playBell(3);
+                body.className = "state-red";
+                statusText.innerText = "SESSION END (15 MIN)";
+            }
+
+            // Overtime logic
+            if (currentSec > TIME_3 * 60) {
+                body.classList.add("state-overtime");
             }
         }
 
@@ -162,10 +281,7 @@
             function chime() {
                 if (count < times) {
                     audioPlayer.currentTime = 0;
-                    audioPlayer.play().catch(e => {
-                        console.log("Audio Error:", e);
-                        statusText.innerText = "Audio Error (Check filename)";
-                    });
+                    audioPlayer.play().catch(e => console.log("Audio Error:", e));
                     count++;
                     if (count < times) setTimeout(chime, 1500);
                 }
@@ -174,13 +290,6 @@
         }
 
         function testSound() { playBell(1); }
-
-        function setBackground(state) {
-            if (state === 'green') document.body.style.backgroundColor = '#1e3a29';
-            else if (state === 'yellow') document.body.style.backgroundColor = '#b58900';
-            else if (state === 'red') document.body.style.backgroundColor = '#8a1c1c';
-            else document.body.style.backgroundColor = '#222';
-        }
     </script>
 </body>
 </html>
