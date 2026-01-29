@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Timer (Fixed Audio)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: white;
+            transition: background-color 1s ease;
+            overflow: hidden;
+        }
+
+        /* Responsive Text Sizing */
+        #timer {
+            font-size: 35vmin; 
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            margin: 2vh 0;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .status {
+            font-size: 5vmin;
+            margin-bottom: 2vh;
+            font-weight: 600;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .btn-start { background-color: #28a745; }
+        .btn-stop { background-color: #dc3545; }
+        .btn-reset { background-color: #6c757d; }
+        
+        /* Hidden Audio Player */
+        audio { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="timer">00:00</div>
+    <div class="status" id="statusText">Ready</div>
+
+    <div class="controls">
+        <button class="btn-start" onclick="startTimer()">Start</button>
+        <button class="btn-stop" onclick="stopTimer()">Pause</button>
+        <button class="btn-reset" onclick="resetTimer()">Reset</button>
+        <button class="btn-reset" onclick="testSound()" style="background-color: #17a2b8;">Test Bell</button>
+    </div>
+
+    <audio id="bellAudio">
+        <source src="bell.mp3" type="audio/mpeg">
+        <source src="bell.wav" type="audio/wav"> </audio>
+
+    <script>
+        let seconds = 0;
+        let interval = null;
+        let isRunning = false;
+        const timerDisplay = document.getElementById('timer');
+        const statusText = document.getElementById('statusText');
+        const audioPlayer = document.getElementById('bellAudio');
+
+        // --- TIMES (Minutes) ---
+        const TIME_1 = 9;  // 1 Bell
+        const TIME_2 = 12; // 2 Bells
+        const TIME_3 = 15; // 3 Bells
+
+        function formatTime(sec) {
+            const mins = Math.floor(sec / 60);
+            const secs = sec % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timerDisplay.innerText = formatTime(seconds);
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            
+            // "Wake up" the audio engine on user click so it's ready for later
+            audioPlayer.play().then(() => {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }).catch(e => console.log("Audio waiting for interaction"));
+
+            isRunning = true;
+            statusText.innerText = "Running";
+            setBackground('green');
+
+            interval = setInterval(() => {
+                seconds++;
+                updateDisplay();
+                checkTime();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(interval);
+            isRunning = false;
+            statusText.innerText = "Paused";
+        }
+
+        function resetTimer() {
+            stopTimer();
+            seconds = 0;
+            updateDisplay();
+            statusText.innerText = "Ready";
+            setBackground('default');
+        }
+
+        function checkTime() {
+            if (seconds === TIME_1 * 60) {
+                statusText.innerText = "9 Minutes (1 Bell)";
+                playBell(1);
+            } 
+            else if (seconds === TIME_2 * 60) {
+                statusText.innerText = "12 Minutes (2 Bells)";
+                setBackground('yellow');
+                playBell(2);
+            } 
+            else if (seconds === TIME_3 * 60) {
+                statusText.innerText = "TIME IS UP";
+                setBackground('red');
+                playBell(3);
+            }
+        }
+
+        function playBell(times) {
+            let count = 0;
+            function chime() {
+                if (count < times) {
+                    audioPlayer.currentTime = 0;
+                    audioPlayer.play().catch(e => {
+                        console.log("Audio Error:", e);
+                        statusText.innerText = "Audio Error (Check filename)";
+                    });
+                    count++;
+                    if (count < times) setTimeout(chime, 1500);
+                }
+            }
+            chime();
+        }
+
+        function testSound() { playBell(1); }
+
+        function setBackground(state) {
+            if (state === 'green') document.body.style.backgroundColor = '#1e3a29';
+            else if (state === 'yellow') document.body.style.backgroundColor = '#b58900';
+            else if (state === 'red') document.body.style.backgroundColor = '#8a1c1c';
+            else document.body.style.backgroundColor = '#222';
+        }
+    </script>
+</body>
+</html>
